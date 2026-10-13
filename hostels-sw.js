@@ -1,4 +1,4 @@
-const CACHE = "hostels-v5";
+const CACHE = "hostels-v9";
 const FILES = ["./", "./index.html", "hostels-manifest.json", "icon-192-1.png", "icon-512-1.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
@@ -12,7 +12,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request, {cache:'no-cache'}).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy));
       return res;
