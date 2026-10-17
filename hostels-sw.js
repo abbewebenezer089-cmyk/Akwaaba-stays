@@ -1,4 +1,4 @@
-const CACHE = "hostels-v16";
+const CACHE = "hostels-v17";
 const FILES = ["./", "./index.html", "hostels-manifest.json", "icon-192-1.png", "icon-512-1.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));

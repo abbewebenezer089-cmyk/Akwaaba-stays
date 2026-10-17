@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E5C45">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Akwaaba Stays">
+<meta name="description" content="Akwaaba Stays: welcome home. Find a hostel by region, town and the landmark next to it.">
+<link rel="manifest" href="hostels-manifest.json">
+<link rel="icon" href="icon-192-1.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192-1.png">
+<title>Akwaaba Stays</title>
+<style>
+  :root{
+    --green:#0E5C45; --yellow:#FFC21A; --bg:#EAF0F2; --ink:#12232B; --mute:#566A73;
+    --line:#CBD8DD; --red:#C73A26; --paper:#FFFFFF; --soft:#E4EEF1; --dg:#1E9E5A; --dr:#D6402B;
+    --head:"Arial Black","Segoe UI Black","Roboto",sans-serif;
+    --body:"Segoe UI","Roboto","Helvetica Neue",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding-bottom:78px}
+  body.lock{overflow:hidden}
+  button,input,select,textarea{font:inherit;color:inherit}
+  :focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+  header{background:var(--green);color:#fff;padding:14px 14px 16px}
+  .signbox{border:2px solid rgba(255,255,255,.9);border-radius:10px;padding:10px 14px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{flex:none}
+  .signbox h1{margin:0;font-family:var(--head);font-size:23px;font-weight:900;line-height:1.15}
+  .signbox p{margin:3px 0 0;font-size:14.5px;color:#D5EBE2}
+  #install{margin-top:10px;background:none;border:2px solid #fff;color:#fff;border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer}
+
+  main{max-width:640px;margin:0 auto;padding:14px 14px 6px}
+  .view{display:none}.view.on{display:block}
+
+  input,select,textarea{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:7px;padding:11px;font-size:16px}
+  textarea{min-height:80px;resize:vertical}
+  .filters{display:grid;gap:8px;margin-bottom:10px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .filters .two{gap:8px}
+  .countbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 6px;font-size:14.5px;color:var(--mute)}
+  .countbar select{width:auto;padding:7px 8px;font-size:14.5px}
+  .showrow{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:15px}
+  .showrow input{width:22px;height:22px;flex:none}
+
+  /* two-circle status: green = not taken, red = taken */
+  .dots{display:inline-flex;align-items:center;gap:5px}
+  .dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:2.5px solid;flex:none}
+  .dot.g{border-color:var(--dg)}.dot.r{border-color:var(--dr)}
+  .dot.g.on{background:var(--dg)}.dot.r.on{background:var(--dr)}
+  .state{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px}
+
+  .card{background:var(--paper);border:1.5px solid var(--line);border-radius:6px 6px 14px 6px;margin-bottom:16px;overflow:hidden;cursor:pointer}
+  .shot{position:relative;aspect-ratio:16/10;background:#C9D6DB}
+  .shot img{width:100%;height:100%;object-fit:cover;display:block}
+  .flag{position:absolute;top:0;right:0;background:var(--yellow);color:var(--ink);font-family:var(--head);font-size:15px;padding:7px 11px 7px 14px;border-bottom-left-radius:12px}
+  .flag small{font-family:var(--body);font-weight:600;font-size:12.5px}
+  .sign{position:absolute;left:10px;bottom:-1px;max-width:calc(100% - 20px);display:flex;align-items:center;gap:6px;background:var(--green);color:#fff;border-radius:8px 8px 0 0;padding:7px 11px 8px;font-weight:700;font-size:14.5px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85)}
+  .sign svg{flex:none}
+  .cbody{padding:12px 14px 14px}
+  .cbody h2{margin:0;font-family:var(--head);font-size:18px;font-weight:900;line-height:1.2}
+  .cbody .loc{margin:3px 0 0;color:var(--mute);font-size:15px}
+  .tags{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px}
+  .tag{display:inline-block;font-size:13.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--soft)}
+  .tag.left{background:var(--yellow)}
+  .tag.ok{background:#CFE9DD;color:#0A4634}
+  .card.isTaken .shot img{filter:grayscale(.8)}
+  .empty{background:#fff;border:1.5px dashed var(--line);border-radius:10px;padding:22px 16px;text-align:center;color:var(--mute)}
+  .empty b{display:block;color:var(--ink);margin-bottom:4px}
+
+  .sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding-bottom:96px}
+  .sheet[hidden]{display:none}
+  .topbar{position:sticky;top:0;z-index:3;background:var(--green);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 12px}
+  .topbar button{background:none;border:2px solid rgba(255,255,255,.9);color:#fff;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+  .topbar span{font-family:var(--head);font-size:16px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:#C9D6DB}
+  .gal img{flex:none;width:100%;aspect-ratio:4/3;object-fit:cover;scroll-snap-align:center}
+  .count{margin:-34px 10px 0 0;text-align:right;height:34px;position:relative}
+  .count span{display:inline-block;background:rgba(18,35,43,.8);color:#fff;font-size:13.5px;border-radius:99px;padding:3px 10px}
+  .dwrap{max-width:640px;margin:0 auto;padding:6px 14px 0}
+  .dtop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 2px;flex-wrap:wrap}
+  .dprice{font-family:var(--head);font-size:24px;font-weight:900;margin:0}
+  .dprice small{font-family:var(--body);font-size:16px;font-weight:600;color:var(--mute)}
+  .facts{background:#fff;border:1.5px solid var(--line);border-radius:10px;margin:12px 0}
+  .facts div{display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+  .facts div:last-child{border-bottom:0}
+  .facts dt{flex:none;width:92px;color:var(--mute);font-size:14.5px}
+  .facts dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+  h3{font-family:var(--head);font-size:16px;font-weight:900;margin:16px 0 8px}
+  .rooms{background:#fff;border:1.5px solid var(--line);border-radius:10px;margin:0 0 12px}
+  .rooms>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+  .rooms>div:last-child{border-bottom:0}
+  .rooms b{display:block}
+  .rooms span{color:var(--mute);font-size:14.5px}
+  .rooms .n{flex:none;display:flex;align-items:center;gap:7px;font-weight:800;color:var(--ink)}
+  .rooms .gone{opacity:.6}
+  .desc{margin:0 0 12px}
+  .vid{display:block;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;margin:0 0 12px}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:#fff;border-top:1.5px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .act{display:block;text-align:center;text-decoration:none;font-weight:800;border-radius:9px;padding:13px 8px;background:var(--green);color:#fff;border:2px solid var(--green)}
+  .act.wa{background:#fff;color:var(--green)}
+  .act.off{background:var(--soft);color:var(--mute);border-color:var(--soft)}
+  .note{grid-column:1/-1;margin:0;text-align:center;font-size:13.5px;color:var(--mute)}
+
+  .panel{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:14px 14px 4px;margin-bottom:14px}
+  .panel h2{margin:0 0 10px;font-family:var(--head);font-size:17px;font-weight:900}
+  .f{margin-bottom:12px}
+  .f label{display:block;font-weight:700;font-size:14.5px;margin-bottom:4px}
+  .hint{font-size:13.5px;color:var(--mute);margin-top:3px}
+  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#C9D6DB}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb button,.vrow button{border:0;background:rgba(18,35,43,.85);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+  .thumb button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%}
+  .vrow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14.5px;overflow-wrap:anywhere}
+  .vrow button{flex:none;width:28px;height:28px;border-radius:50%}
+  .rrow{border:1.5px solid var(--line);border-left:6px solid var(--yellow);border-radius:8px;padding:10px 10px 2px;margin-bottom:12px;background:#FBFCFC}
+  .err{background:#FBE3DF;color:#8F2515;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-weight:600;font-size:15px}
+  .btn{width:100%;border:2px solid var(--green);background:var(--green);color:#fff;border-radius:9px;padding:14px;font-weight:800;font-size:17px;cursor:pointer}
+  .btn:disabled{opacity:.6}
+  .ghost{background:#fff;border:2px solid var(--green);color:var(--green);border-radius:9px;padding:10px 12px;font-weight:700;cursor:pointer}
+  .ghost.red{border-color:var(--red);color:var(--red)}
+  .ghost:disabled{opacity:.45}
+  .small{padding:11px 12px;font-size:15.5px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .banner{background:#FFFBEB;border:1.5px solid var(--line);border-left:6px solid var(--yellow);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-weight:600}
+
+  .notice{border:1.5px solid var(--line);border-left:6px solid var(--yellow);background:#FFFBEB;border-radius:8px;padding:10px 12px;margin:10px 0 14px}
+  .notice p{margin:0 0 6px}.notice p:last-child{margin:0}
+  .link{display:inline-block;font-weight:700;color:var(--green);margin:2px 0 4px}
+  .status{font-weight:700;margin:0 0 6px}
+  .status.live{color:var(--green)}.status.bad{color:var(--red)}
+  .q{font-weight:700;margin:12px 0 8px}
+  .tg{display:flex;gap:12px;margin-bottom:6px}
+  .tc{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 6px;font-weight:700;cursor:pointer}
+  .big{width:44px;height:44px;border-radius:50%;border:5px solid;display:block}
+  .tc.g .big{border-color:var(--dg)}.tc.r .big{border-color:var(--dr)}
+  .tc.g.on{border-color:var(--dg);background:#EAF7F0}.tc.r.on{border-color:var(--dr);background:#FCEDEA}
+  .tc.g.on .big{background:var(--dg)}.tc.r.on .big{background:var(--dr)}
+  .mroom{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .mroom:last-child{border-bottom:0}
+  .mroom b{display:flex;align-items:center;gap:8px}
+  .mroom span{color:var(--mute);font-size:14.5px}
+  .mbtns{display:flex;gap:6px;flex:none}
+  .mbtns button{padding:8px 10px;font-size:14.5px}
+  .gone{opacity:.6}
+
+  .atabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .atabs button{background:#fff;border:2px solid var(--line);border-radius:99px;padding:7px 13px;font-weight:700;font-size:14.5px;cursor:pointer}
+  .atabs button[aria-selected="true"]{background:var(--green);border-color:var(--green);color:#fff}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .stat{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px}
+  .stat b{display:block;font-family:var(--head);font-size:24px;font-weight:900;line-height:1.15}
+  .stat span{color:var(--mute);font-size:14.5px}
+  .loc2{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+  .loc2 span{color:var(--mute);font-size:14.5px}
+  .act-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .act-row:last-child{border-bottom:0}
+  .act-row small{display:block;color:var(--mute);font-size:13px}
+  .arow{background:#fff;border:1.5px solid var(--line);border-radius:10px;margin-bottom:10px}
+  .arow summary{padding:12px 14px;cursor:pointer;list-style:none}
+  .arow summary::-webkit-details-marker{display:none}
+  .arow summary b{display:block;font-family:var(--head);font-size:15.5px;font-weight:900}
+  .arow summary span{font-size:14.5px;color:var(--mute)}
+  .arow summary span.soon{color:#9A5B00;font-weight:700}
+  .arow summary span.bad{color:var(--red);font-weight:700}
+  .arow summary span.live{color:var(--green);font-weight:700}
+  .abody{padding:2px 14px 12px;border-top:1px solid var(--line)}
+  .abody p{margin:10px 0}
+  .chk{display:flex;gap:10px;align-items:flex-start;margin:4px 0 12px;font-size:15px}
+  .chk input{width:22px;height:22px;flex:none;margin-top:1px}
+  .pay,.fb{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px}
+  .pay b{display:flex;justify-content:space-between;gap:10px}
+  .pay span,.fb span{display:block;color:var(--mute);font-size:14.5px;overflow-wrap:anywhere}
+  .fb p{margin:6px 0 8px;overflow-wrap:anywhere}
+  .fb.new{border-left:6px solid var(--yellow)}
+  .total{font-family:var(--head);font-size:20px;margin:0 0 10px}
+
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1.5px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr)}
+  nav button{background:none;border:0;border-top:4px solid transparent;padding:14px 1px 16px;font-weight:700;font-size:13.5px;color:var(--mute);cursor:pointer}
+  nav button[aria-selected="true"]{color:var(--green);border-top-color:var(--yellow)}
+  .toast{position:fixed;left:14px;right:14px;bottom:92px;z-index:40;background:var(--ink);color:#fff;border-radius:9px;padding:12px 14px;font-size:15px;display:none}
+  .toast.on{display:block}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  .sheet{padding-bottom:170px}
+  button.act{font:inherit;font-weight:800;cursor:pointer}
+  .reqsheet{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:flex-end}
+  .reqsheet[hidden]{display:none}
+  .reqsheet .box{background:#fff;width:100%;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 14px 22px}
+  .reqsheet h2{margin:0 0 4px;font-family:var(--head);font-size:19px;font-weight:900}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="signbox">
+    <div class="brand">
+      <svg class="mark" viewBox="60 40 392 420" width="46" height="49" aria-hidden="true">
+      <g transform="translate(256 256) scale(1.14) translate(-256 -238)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M256 96V66M214 110L194 88M298 110L318 88" stroke="#FFC21A" stroke-width="14"/>
+        <path d="M118 276L256 160L394 276" stroke="#FFC21A" stroke-width="38"/>
+        <rect x="158" y="266" width="196" height="138" rx="16" fill="#fff" stroke="none"/>
+        <path d="M222 404V330a34 34 0 0 1 68 0V404Z" fill="#FFC21A" stroke="none"/>
+        <circle cx="276" cy="372" r="5.5" fill="#0E5C45" stroke="none"/>
+      </g></svg>
+      <div><h1>Akwaaba Stays</h1><p>Welcome home. Find a hostel by the landmark next to it.</p></div>
+    </div>
+  </div>
+  <button id="install" hidden>Install app</button>
+</header>
+
+<main>
+  <!-- FIND -->
+  <section class="view on" id="v-find">
+    <div class="filters">
+      <input id="q" type="search" placeholder="Search by hostel, town or landmark" aria-label="Search hostels">
+      <div class="two">
+        <select id="region" aria-label="Region"></select>
+        <select id="town" aria-label="Town"></select>
+      </div>
+      <div class="two">
+        <select id="area" aria-label="Area"></select>
+        <select id="cap" aria-label="Highest price per year">
+          <option value="0">Any price</option>
+          <option value="3000">Up to GH₵ 3,000 a year</option>
+          <option value="4000">Up to GH₵ 4,000 a year</option>
+          <option value="5000">Up to GH₵ 5,000 a year</option>
+          <option value="6000">Up to GH₵ 6,000 a year</option>
+        </select>
+      </div>
+    </div>
+    <label class="showrow"><input type="checkbox" id="showtaken"> Also show hostels that are taken</label>
+    <div class="countbar">
+      <span id="count"></span>
+      <select id="sort" aria-label="Sort hostels">
+        <option value="new">Newest first</option>
+        <option value="low">Price, low to high</option>
+        <option value="high">Price, high to low</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <!-- LIST A HOSTEL -->
+  <section class="view" id="v-post">
+    <div id="addnote"></div>
+    <div id="err"></div>
+    <div class="panel">
+      <h2>The hostel</h2>
+      <div class="f"><label for="name">Hostel name</label><input id="name" autocomplete="off"></div>
+      <div class="f"><label for="reg">Registration or licence number</label><input id="reg" autocomplete="off"><div class="hint">We check this against the official list before your hostel goes live.</div></div>
+    </div>
+    <div class="panel">
+      <h2>Where it is</h2>
+      <div class="f"><label for="pregion">Region</label><select id="pregion"></select></div>
+      <div class="f"><label for="ptown">Town or city</label><input id="ptown" list="townlist" placeholder="e.g. Cape Coast" autocomplete="off"><datalist id="townlist"></datalist></div>
+      <div class="f"><label for="parea">Area</label><input id="parea" list="arealist" placeholder="e.g. Abura" autocomplete="off"><datalist id="arealist"></datalist><div class="hint">Pick a suggestion if you see yours. If not, type it.</div></div>
+      <div class="f"><label for="landmark">Landmark nearby</label><input id="landmark" placeholder="e.g. Behind the Total filling station" autocomplete="off"><div class="hint">Students find hostels by landmarks. Be specific.</div></div>
+    </div>
+    <div class="panel">
+      <h2>Rooms and prices</h2>
+      <div id="roomrows"></div>
+      <button type="button" class="ghost" id="addroom" style="margin-bottom:14px">Add another room type</button>
+    </div>
+    <div class="panel">
+      <h2>Create your account</h2>
+      <div class="f"><label for="owner">Owner's name</label><input id="owner" autocomplete="off"></div>
+      <div class="f"><label for="phone">Your phone number (this is your sign-in)</label><input id="phone" type="tel" inputmode="tel" placeholder="024 123 4567" autocomplete="off"></div>
+      <div class="f"><label for="pin">Create a password (at least 6 characters)</label><input id="pin" type="password" autocomplete="new-password"><div class="hint">You will use your phone number and this password to sign in.</div></div>
+      <div class="f"><label for="pin2">Type the password again</label><input id="pin2" type="password" autocomplete="new-password"></div>
+    </div>
+    <div class="panel">
+      <h2>Photos and videos</h2>
+      <div class="f">
+        <label for="photos">Photos (up to 5)</label>
+        <input id="photos" type="file" accept="image/*" multiple>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+      <div class="f">
+        <label for="videos">Videos (up to 10)</label>
+        <input id="videos" type="file" accept="video/*" multiple>
+        <div class="hint">Choose short videos from your phone, or record new ones. Each video can be up to 20 MB, so keep each one under about a minute.</div>
+        <div id="vlist"></div>
+      </div>
+      <div class="f"><label for="desc">About the hostel</label><textarea id="desc" placeholder="Water, light, Wi-Fi, security, distance to campus"></textarea></div>
+    </div>
+    <button class="btn" id="post">Save hostel</button>
+    <p style="margin:0 0 14px"></p>
+  </section>
+
+  <!-- MY HOSTELS (owner) -->
+  <section class="view" id="v-manage"><div id="manage"></div></section>
+
+  <!-- FEEDBACK -->
+  <section class="view" id="v-feedback">
+    <div class="panel">
+      <h2>Tell us what you think</h2>
+      <div class="f"><label for="fbabout">What is it about?</label><select id="fbabout"></select></div>
+      <div class="f"><label for="fbrate">How was your experience?</label>
+        <select id="fbrate"><option value="">Choose one</option><option value="5">Very good</option><option value="4">Good</option><option value="3">Okay</option><option value="2">Poor</option><option value="1">Very poor</option></select></div>
+      <div class="f"><label for="fbmsg">Your feedback</label><textarea id="fbmsg" placeholder="Tell us what worked and what did not"></textarea></div>
+      <div class="two">
+        <div class="f"><label for="fbname">Your name (optional)</label><input id="fbname" autocomplete="off"></div>
+        <div class="f"><label for="fbphone">Phone (optional)</label><input id="fbphone" type="tel" inputmode="tel" autocomplete="off"></div>
+      </div>
+      <div id="fberr"></div>
+      <button class="btn" id="fbsend" style="margin-bottom:14px">Send feedback</button>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section class="view" id="v-admin"><div id="admin"></div></section>
+</main>
+
+<div class="sheet" id="detail" hidden></div>
+<div class="reqsheet" id="editsheet" hidden></div>
+<div class="toast" id="toast" role="status"></div>
+
+<nav role="tablist" aria-label="Sections">
+  <button role="tab" aria-selected="true" data-v="find">Find</button>
+  <button role="tab" aria-selected="false" data-v="post">List</button>
+  <button role="tab" aria-selected="false" data-v="manage">My hostel</button>
+  <button role="tab" aria-selected="false" data-v="feedback">Feedback</button>
+  <button role="tab" aria-selected="false" data-v="admin">Admin</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = v => 'GH₵ ' + Math.round(v).toLocaleString('en-US');
+const toYear = (p, per) => per === 'month' ? p*12 : per === 'semester' ? p*2 : p;
+const byYear = (a, b) => toYear(a.price, a.period) - toYear(b.price, b.period);
+const now = () => Date.now();
+const DAY = 86400000;
+const fmtDate = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+const fmtTime = t => fmtDate(t) + ', ' + new Date(t).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+const REGIONS = ['Ahafo','Ashanti','Bono','Bono East','Central','Eastern','Greater Accra','North East','Northern','Oti','Savannah','Upper East','Upper West','Volta','Western','Western North'];
+
+function waNumber(p){
+  const d = String(p).replace(/\D/g,'');
+  if (d.startsWith('233') && d.length === 12) return d;
+  if (d.startsWith('0') && d.length === 10) return '233' + d.slice(1);
+  return null;
+}
+
+/* ---------- sample photos (drawn, labelled) ---------- */
+function art(kind, c1, c2){
+  let shapes = '';
+  if (kind === 'front'){
+    let w = '';
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) w += `<rect x="${112+c*46}" y="${62+r*42}" width="28" height="26" fill="#FFF3C4" opacity=".9"/>`;
+    shapes = `<rect x="96" y="44" width="208" height="150" fill="#F5F7F8"/>${w}<rect x="188" y="150" width="24" height="44" fill="#12232B"/><rect x="60" y="194" width="280" height="12" fill="#12232B" opacity=".25"/>`;
+  } else if (kind === 'room'){
+    shapes = `<rect x="70" y="120" width="190" height="60" rx="6" fill="#F5F7F8"/><rect x="70" y="100" width="46" height="40" rx="6" fill="#FFC21A"/><rect x="70" y="180" width="8" height="26" fill="#12232B"/><rect x="252" y="180" width="8" height="26" fill="#12232B"/><rect x="292" y="60" width="52" height="70" fill="#FFF3C4" opacity=".9"/>`;
+  } else {
+    shapes = `<rect x="40" y="170" width="320" height="40" fill="#12232B" opacity=".18"/><rect x="90" y="110" width="12" height="70" fill="#5B3A1E"/><circle cx="96" cy="96" r="38" fill="#0E5C45"/><rect x="230" y="130" width="100" height="50" fill="#F5F7F8"/><polygon points="222,130 280,96 338,130" fill="#12232B" opacity=".55"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="400" height="250" fill="url(#g)"/>${shapes}<text x="390" y="240" font-size="13" text-anchor="end" fill="#12232B" opacity=".6" font-family="sans-serif">Sample photo</text></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+const SAMPLES = [
+  {id:'s1', sample:true, name:'Sunrise Heights Hostel', owner:'Sample owner', phone:'', region:'Central', town:'Cape Coast', area:'Abura', landmark:'Behind the Total filling station', reg:'Sample', desc:'Self-contained rooms, running water, and Wi-Fi in the common room. Short walk to campus.', videoIds:[], created:4,
+   rooms:[{id:'r1', type:'2 in a room, self-contained', price:3800, period:'year', left:4},{id:'r2', type:'4 in a room', price:2900, period:'year', left:2}],
+   photos:[art('front','#9CC9D8','#E8F1F5'), art('room','#E8D9B0','#F6EFD9'), art('yard','#B9DDB5','#EAF4E6')]},
+  {id:'s2', sample:true, name:'Palm Court Hostel', owner:'Sample owner', phone:'', region:'Central', town:'Cape Coast', area:'Kotokuraba', landmark:'Opposite the red-roof church', reg:'Sample', desc:'Gated compound with a security guard.', videoIds:[], created:3,
+   rooms:[{id:'r1', type:'2 in a room', price:2200, period:'semester', left:3},{id:'r2', type:'Single room', price:3400, period:'semester', left:1}],
+   photos:[art('front','#F2B8A2','#FBE8DF'), art('room','#C9D6F2','#E9EEFA')]},
+  {id:'s3', sample:true, name:'Campus Edge Lodge', owner:'Sample owner', phone:'', region:'Central', town:'Cape Coast', area:'Amamoma', landmark:'Beside the main gate junction', reg:'Sample', desc:'Monthly rent for students who prefer to pay in small amounts. Kitchen and laundry area.', videoIds:[], created:2,
+   rooms:[{id:'r1', type:'Shared room', price:450, period:'month', left:6},{id:'r2', type:'Self-contained', price:600, period:'month', left:2}],
+   photos:[art('front','#C7B8E8','#EEE8FA'), art('yard','#B9DDB5','#EAF4E6'), art('room','#E8D9B0','#F6EFD9')]},
+  {id:'s4', sample:true, taken:true, name:'Greenfield Court', owner:'Sample owner', phone:'', region:'Ashanti', town:'Kumasi', area:'Ayeduase', landmark:'Near the roundabout', reg:'Sample', desc:'This sample shows how a hostel looks when it is taken.', videoIds:[], created:1,
+   rooms:[{id:'r1', type:'2 in a room', price:5200, period:'year', left:0}],
+   photos:[art('front','#B9DDB5','#EAF4E6')]}
+];
+
+/* ---------- data (shared online with Supabase) ---------- */
+const SB_URL = 'https://vhazsqyqjmtvwvxaabbz.supabase.co', SB_KEY = 'sb_publishable_dEPgRZMNM4es7dkZzUe1dQ_mVE-n9D_';
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:false, autoRefreshToken:false, detectSessionInUrl:false}}) : null;
+const CACHE_KEY = 'akwaaba:public:v1';
+function cleanErr(m){ return /failed to fetch|networkerror|load failed|network request/i.test(String(m)) ? 'No internet connection. Please try again.' : String(m); }
+async function rpc(fn, args){
+  if (!sb) throw new Error('The app could not load fully. Check your internet and refresh.');
+  let r;
+  try { r = await sb.rpc(fn, args || {}); } catch(e){ throw new Error(cleanErr(e && e.message)); }
+  if (r.error) throw new Error(cleanErr(r.error.message));
+  return r.data;
+}
+// hostels from the public list are already checked by the server (live and paid), so they never expire here
+const asPublic = h => { h.paidUntil = h.paidUntil || now() + 5 * 365 * 86400000; return h; };
+const fixH = h => Object.assign({sample:false, videoIds:[], videos:[], photos:[], rooms:[], taken:false, paidUntil:0}, h, {paidUntil:+h.paidUntil || 0, created:+h.created || 0});
+let PUB = [], MINE = [], SET = {agentPhone:'', premSmall:0, premMedium:0, premLarge:0, studentFee:0};
+let ADM = {hostels:[], payments:[], requests:[], notices:[], feedback:[], log:[]};
+let LOADING = true, LOADFAIL = false, STALE = false;
+const all = () => PUB.length ? PUB : SAMPLES;
+
+async function loadPublic(){
+  try {
+    const [h, st] = await Promise.all([rpc('public_hostels'), rpc('public_settings')]);
+    PUB = (h || []).map(fixH).map(asPublic); SET = Object.assign({agentPhone:'', premSmall:0, premMedium:0, premLarge:0, studentFee:0}, st || {});
+    LOADFAIL = false; STALE = false;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({PUB, SET})); } catch(_){}
+  } catch(e){
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (c && c.PUB){ PUB = c.PUB.map(asPublic); SET = c.SET || SET; LOADFAIL = false; STALE = true; } else LOADFAIL = true;
+    } catch(_){ LOADFAIL = true; }
+  }
+  LOADING = false;
+  if ($('#v-find').classList.contains('on')) renderFind();
+}
+async function loadMine(){
+  MINE = ((await rpc('owner_hostels', {p_phone:session.phone, p_pin:session.pin})) || []).map(fixH);
+}
+async function loadAdmin(){
+  const d = await rpc('admin_all', {p_pin:adminPin});
+  ADM = {hostels:(d.hostels || []).map(fixH), payments:d.payments || [], requests:d.requests || [], notices:d.notices || [], feedback:d.feedback || [], log:d.log || []};
+  SET = Object.assign(SET, d.settings || {});
+}
+
+function stateOf(h){
+  if (h.sample) return 'live';
+  if (h.status === 'suspended') return 'suspended';
+  if (h.status === 'live') return h.paidUntil > now() ? 'live' : 'expired';
+  return 'pending';
+}
+const roomsLeft = h => h.rooms.reduce((a, r) => a + Math.max(0, r.left), 0);
+const isTaken = h => !!h.taken || roomsLeft(h) === 0;
+const isLive = h => stateOf(h) === 'live';
+const availRooms = h => h.rooms.filter(r => r.left > 0).sort(byYear);
+const cheapest = h => availRooms(h)[0] || h.rooms.slice().sort(byYear)[0];
+const perLabel = p => p === 'year' ? 'year' : p === 'semester' ? 'semester' : 'month';
+const locText = h => h.area + ', ' + h.town;
+const premFor = size => +({small:SET.premSmall, medium:SET.premMedium, large:SET.premLarge}[size || 'small']) || 0;
+const noEnd = h => h.paidUntil > now() + 3 * 365 * 86400000;
+const daysLeft = h => Math.ceil((h.paidUntil - now()) / 86400000);
+
+/* two circles: green = not taken, red = taken */
+const stateHtml = taken => `<span class="state" role="img" aria-label="${taken ? 'Taken' : 'Not taken'}"><span class="dots"><i class="dot g${taken ? '' : ' on'}"></i><i class="dot r${taken ? ' on' : ''}"></i></span>${taken ? 'Taken' : 'Not taken'}</span>`;
+const oneDot = taken => `<i class="dot ${taken ? 'r' : 'g'} on"></i>`;
+
+/* ---------- Find ---------- */
+const PIN = '<svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path d="M7 0C3.1 0 0 3 0 6.8 0 11.7 7 18 7 18s7-6.3 7-11.2C14 3 10.9 0 7 0zm0 9.6A2.8 2.8 0 1 1 7 4a2.8 2.8 0 0 1 0 5.6z" fill="#FFC21A"/></svg>';
+const showTaken = () => !!$('#showtaken').checked;
+const visibleBase = () => all().filter(h => isLive(h) && (showTaken() || !isTaken(h)));
+function countBy(list, key){ const m = {}; list.forEach(h => { m[h[key]] = (m[h[key]] || 0) + 1; }); return m; }
+function optionsFor(label, m, cur){
+  const names = Object.keys(m).sort();
+  return {html:`<option value="">${label}</option>` + names.map(n => `<option value="${esc(n)}">${esc(n)} (${m[n]})</option>`).join(''), valid:names.includes(cur)};
+}
+function fillFilters(){
+  const base = visibleBase(), rs = $('#region'), ts = $('#town'), as = $('#area');
+  let r = rs.value, t = ts.value, a = as.value;
+  let o = optionsFor('All regions', countBy(base, 'region'), r); rs.innerHTML = o.html; if (!o.valid) r = ''; rs.value = r;
+  const b1 = r ? base.filter(h => h.region === r) : base;
+  o = optionsFor('All towns', countBy(b1, 'town'), t); ts.innerHTML = o.html; if (!o.valid) t = ''; ts.value = t;
+  const b2 = t ? b1.filter(h => h.town === t) : b1;
+  o = optionsFor('All areas', countBy(b2, 'area'), a); as.innerHTML = o.html; if (!o.valid) a = ''; as.value = a;
+}
+function filtered(){
+  const q = ($('#q').value || '').toLowerCase().trim();
+  const r = $('#region').value, t = $('#town').value, a = $('#area').value, cap = +$('#cap').value, sort = $('#sort').value;
+  const yr = h => { const c = cheapest(h); return toYear(c.price, c.period); };
+  const list = visibleBase().filter(h => {
+    const text = [h.name, h.region, h.town, h.area, h.landmark].join(' ').toLowerCase();
+    return (!q || text.includes(q)) && (!r || h.region === r) && (!t || h.town === t) && (!a || h.area === a) && (!cap || yr(h) <= cap);
+  });
+  if (sort === 'low') list.sort((x, y) => yr(x) - yr(y));
+  else if (sort === 'high') list.sort((x, y) => yr(y) - yr(x));
+  else list.sort((x, y) => y.created - x.created);
+  return list;
+}
+function card(h){
+  const c = cheapest(h), n = roomsLeft(h), taken = isTaken(h);
+  const extra = h.sample ? '<span class="tag">Sample listing</span>' : '<span class="tag ok">Registration checked</span>';
+  return `<article class="card${taken ? ' isTaken' : ''}" data-id="${esc(h.id)}" tabindex="0" role="button" aria-label="Open ${esc(h.name)}">
+    <div class="shot"><img src="${h.photos[0]}" alt="${esc(h.name)}" loading="lazy">
+      <span class="flag">From ${money(c.price)} <small>a ${perLabel(c.period)}</small></span>
+      <span class="sign">${PIN}<span>${esc(h.landmark)}</span></span></div>
+    <div class="cbody"><h2>${esc(h.name)}</h2><p class="loc">${esc(locText(h))}</p>
+      <div class="tags">${stateHtml(taken)}${taken ? '' : `<span class="tag left">${n} ${n === 1 ? 'room' : 'rooms'} left</span>`}${extra}</div></div>
+  </article>`;
+}
+function renderFind(){
+  if (LOADING){ $('#count').textContent = ''; $('#list').innerHTML = '<div class="empty"><b>Loading hostels...</b>Please wait a moment.</div>'; return; }
+  if (LOADFAIL){ $('#count').textContent = ''; $('#list').innerHTML = '<div class="empty"><b>Could not load hostels.</b>Check your internet, then <button class="ghost small" id="retry" style="margin-top:10px">Try again</button></div>'; return; }
+  fillFilters();
+  const list = filtered();
+  $('#count').textContent = list.length === 1 ? '1 hostel' : list.length + ' hostels';
+  $('#list').innerHTML = list.length ? list.map(card).join('') :
+    '<div class="empty"><b>No hostels match.</b>Clear the search, or choose another region, town, area or price.</div>';
+  if (STALE) $('#list').insertAdjacentHTML('afterbegin', '<div class="banner">You are offline. Showing the last list saved on this phone.</div>');
+}
+$('#list').addEventListener('click', e => { if (e.target.id === 'retry'){ LOADING = true; renderFind(); loadPublic(); } });
+
+/* ---------- Detail ---------- */
+let videoUrls = [];
+function openDetail(id, push = true){
+  const h = all().find(x => x.id === id);
+  if (!h || !isLive(h)) return;
+  const ag = waNumber(SET.agentPhone), c = cheapest(h), taken = isTaken(h);
+  const vids = (h.videos || []).map(u => `<video class="vid" controls playsinline preload="metadata" src="${esc(u)}"></video>`).join('');
+  const hello = encodeURIComponent('Hello, I saw ' + h.name + ' on Akwaaba Stays. Is a room still available?');
+  const actions = h.sample
+    ? `<span class="act off" style="grid-column:1/-1">Request a viewing</span><p class="note">This is a sample listing.</p>`
+    : `<button class="act" id="reqbtn" style="grid-column:1/-1">Request a viewing</button>` +
+      (ag ? `<a class="act wa" href="tel:+${ag}">Call agent</a><a class="act wa" href="https://wa.me/${ag}?text=${hello}" target="_blank" rel="noopener">WhatsApp agent</a>` : '');
+
+  $('#detail').innerHTML = `
+    <div class="topbar"><button id="back">Back</button><span>${esc(h.name)}</span></div>
+    <div class="gal" id="gal">${h.photos.map((p,i) => `<img src="${p}" alt="${esc(h.name)} photo ${i+1}">`).join('')}</div>
+    <div class="count"><span id="gcount">1 of ${h.photos.length}</span></div>
+    <div class="dwrap">
+      <div class="dtop"><p class="dprice">From ${money(c.price)} <small>a ${perLabel(c.period)}</small></p>${stateHtml(taken)}</div>
+      ${(!h.sample && +SET.studentFee > 0) ? `<p class="hint" style="margin:0 0 8px">Agent fee: ${money(SET.studentFee)}, paid to the agent only when you take a room. It is not part of the rent.</p>` : ''}
+      <h3>Rooms</h3>
+      <div class="rooms">${h.rooms.map(r => `<div class="${r.left === 0 ? 'gone' : ''}"><div><b>${esc(r.type)}</b><span>${money(r.price)} a ${perLabel(r.period)}</span></div><span class="n">${oneDot(r.left === 0)}${r.left === 0 ? 'Taken' : r.left + ' left'}</span></div>`).join('')}</div>
+      <dl class="facts">
+        <div><dt>Landmark</dt><dd>${esc(h.landmark)}</dd></div>
+        <div><dt>Location</dt><dd>${esc(h.area)}, ${esc(h.town)}, ${esc(h.region)} Region</dd></div>
+        <div><dt>Contact</dt><dd>${h.sample ? 'Sample listing' : 'Through the Akwaaba Stays agent'}</dd></div>
+        <div><dt>Registration</dt><dd>${h.sample ? 'Sample' : esc(h.reg) + ' (checked)'}</dd></div>
+      </dl>
+      ${h.desc ? `<p class="desc">${esc(h.desc)}</p>` : ''}
+      ${vids ? '<h3>Videos</h3>' + vids : ''}
+      <button class="ghost" id="fbhere" style="margin:4px 0 14px">Give feedback on this hostel</button>
+    </div>
+    <div class="bar">${actions}</div>
+    <div class="reqsheet" id="reqsheet" hidden></div>`;
+  $('#detail').hidden = false;
+  $('#detail').scrollTop = 0;
+  document.body.classList.add('lock');
+  if (push) history.pushState({d:1}, '');
+  $('#back').addEventListener('click', () => history.back());
+  if ($('#reqbtn')) $('#reqbtn').addEventListener('click', () => openReq(h));
+  $('#fbhere').addEventListener('click', () => { history.back(); show('feedback'); $('#fbabout').value = h.id; });
+  const gal = $('#gal');
+  gal.addEventListener('scroll', () => {
+    const i = Math.round(gal.scrollLeft / gal.clientWidth);
+    $('#gcount').textContent = (i + 1) + ' of ' + h.photos.length;
+  });
+}
+const rqErr = m => { $('#rqerr').innerHTML = `<div class="err" role="alert">${esc(m)}</div>`; };
+function openReq(h){
+  const sh = $('#reqsheet'); sh.hidden = false;
+  let me = {}; try { me = JSON.parse(localStorage.getItem('akwaaba:me') || '{}'); } catch(_){}
+  sh.innerHTML = `<div class="box" role="dialog" aria-label="Request a viewing">
+    <h2>Request a viewing</h2>
+    <p class="hint" style="margin:0 0 8px">${esc(h.name)}. The agent will contact you to arrange a time. We use your details only for this.</p>
+    <p class="hint" style="margin:0 0 12px">${+SET.studentFee > 0 ? 'Agent fee: ' + money(SET.studentFee) + '. You pay it to the agent only when you take a room. It is separate from the rent.' : 'The agent will tell you about any fee before you pay anything.'}</p>
+    <div class="f"><label for="rqn">Your name</label><input id="rqn" autocomplete="name" value="${esc(me.name || '')}"></div>
+    <div class="f"><label for="rqp">Your phone number (WhatsApp works best)</label><input id="rqp" type="tel" inputmode="tel" placeholder="024 123 4567" autocomplete="tel" value="${esc(me.phone || '')}"></div>
+    <div class="f"><label for="rqw">When can you come?</label><input id="rqw" placeholder="e.g. Saturday afternoon" autocomplete="off"></div>
+    <div class="f"><label for="rqm">Anything the agent should know (optional)</label><textarea id="rqm" placeholder="Room type, budget, how many people"></textarea></div>
+    <div id="rqerr"></div>
+    <button class="btn" id="rqsend">Send request</button>
+    <button class="ghost" id="rqcancel" style="width:100%;margin-top:10px">Cancel</button></div>`;
+  $('#rqcancel').addEventListener('click', () => { sh.hidden = true; });
+  $('#rqsend').addEventListener('click', async () => {
+    const name = $('#rqn').value.trim(), phone = $('#rqp').value.trim();
+    if (name.length < 2) return rqErr('Enter your name.');
+    if (!waNumber(phone)) return rqErr('Enter a Ghana phone number, like 024 123 4567.');
+    const btn = $('#rqsend'); btn.disabled = true; btn.textContent = 'Sending...';
+    try { await rpc('submit_request', {p:{hostelId:h.id, name, phone, wanted:$('#rqw').value, note:$('#rqm').value}}); }
+    catch(e){ btn.disabled = false; btn.textContent = 'Send request'; return rqErr(e.message); }
+    try { localStorage.setItem('akwaaba:me', JSON.stringify({name, phone})); } catch(_){}
+    $('#reqsheet .box').innerHTML = `<h2>Request sent</h2><p style="margin:8px 0 14px">Thank you, ${esc(name)}. The agent will contact you on ${esc(phone)} to arrange your viewing of ${esc(h.name)}.</p><button class="btn" id="rqdone">Done</button>`;
+    $('#rqdone').addEventListener('click', () => { $('#reqsheet').hidden = true; });
+  });
+}
+function closeDetail(){
+  $('#detail').hidden = true;
+  document.body.classList.remove('lock');
+  videoUrls.forEach(u => URL.revokeObjectURL(u)); videoUrls = [];
+}
+window.addEventListener('popstate', closeDetail);
+$('#list').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) openDetail(c.dataset.id); });
+$('#list').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const c = e.target.closest('.card'); if (c){ e.preventDefault(); openDetail(c.dataset.id); }
+});
+['q','region','town','area','cap','sort','showtaken'].forEach(id => $('#'+id).addEventListener('input', renderFind));
+
+/* ---------- List a hostel ---------- */
+let photos = [], videoFiles = [];
+const MAX_VID = 20 * 1024 * 1024;
+let roomRows = [{type:'', price:'', period:'year', left:''}];
+$('#pregion').innerHTML = '<option value="">Choose region</option>' + REGIONS.map(r => `<option>${r}</option>`).join('');
+
+function fillSuggest(){
+  const r = $('#pregion').value, t = $('#ptown').value.trim().toLowerCase();
+  const pool = all();
+  const towns = [...new Set(pool.filter(h => !r || h.region === r).map(h => h.town))].sort();
+  const areas = [...new Set(pool.filter(h => (!r || h.region === r) && (!t || h.town.toLowerCase() === t)).map(h => h.area))].sort();
+  $('#townlist').innerHTML = towns.map(x => `<option value="${esc(x)}">`).join('');
+  $('#arealist').innerHTML = areas.map(x => `<option value="${esc(x)}">`).join('');
+}
+$('#pregion').addEventListener('input', fillSuggest);
+$('#ptown').addEventListener('input', fillSuggest);
+
+function renderRoomRows(){
+  $('#roomrows').innerHTML = roomRows.map((r, i) => `
+    <div class="rrow" data-i="${i}">
+      <div class="f"><label for="rt${i}">Room type</label><input id="rt${i}" data-k="type" value="${esc(r.type)}" placeholder="e.g. 2 in a room, self-contained" autocomplete="off"></div>
+      <div class="two">
+        <div class="f"><label for="rp${i}">Price (GH₵)</label><input id="rp${i}" data-k="price" type="number" inputmode="decimal" min="0" value="${esc(r.price)}"></div>
+        <div class="f"><label for="rr${i}">Paid per</label><select id="rr${i}" data-k="period">
+          ${['year','semester','month'].map(p => `<option value="${p}"${r.period === p ? ' selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select></div>
+      </div>
+      <div class="f"><label for="rl${i}">Rooms available</label><input id="rl${i}" data-k="left" type="number" inputmode="numeric" min="1" value="${esc(r.left)}"></div>
+      ${roomRows.length > 1 ? `<div class="row"><button type="button" class="ghost red small" data-rm="${i}">Remove this room type</button></div>` : ''}
+    </div>`).join('');
+}
+$('#roomrows').addEventListener('input', e => {
+  const row = e.target.closest('.rrow'); if (!row || !e.target.dataset.k) return;
+  roomRows[+row.dataset.i][e.target.dataset.k] = e.target.value;
+});
+$('#roomrows').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  roomRows.splice(+b.dataset.rm, 1); renderRoomRows();
+});
+$('#addroom').addEventListener('click', () => { roomRows.push({type:'', price:'', period:'year', left:''}); renderRoomRows(); });
+
+function renderThumbs(){
+  $('#thumbs').innerHTML = photos.map((p,i) => `<div class="thumb"><img src="${p}" alt="Photo ${i+1}"><button type="button" data-i="${i}" aria-label="Remove photo ${i+1}">×</button></div>`).join('');
+}
+$('#thumbs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  photos.splice(+b.dataset.i, 1); renderThumbs();
+});
+function compress(file){
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, 800 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.62));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+$('#photos').addEventListener('change', async e => {
+  for (const f of [...e.target.files]){
+    if (photos.length >= 5){ toast('You can add up to 5 photos.'); break; }
+    try { photos.push(await compress(f)); } catch(_) { toast('One photo could not be read.'); }
+  }
+  e.target.value = ''; renderThumbs();
+});
+
+function renderVids(){
+  $('#vlist').innerHTML = videoFiles.map((f, i) => `<div class="vrow"><span>${esc(f.name)} (${(f.size / 1048576).toFixed(1)} MB)</span><button type="button" data-vi="${i}" aria-label="Remove video ${i+1}">×</button></div>`).join('');
+}
+$('#videos').addEventListener('change', e => {
+  for (const f of [...e.target.files]){
+    if (videoFiles.length >= 10){ toast('You can add up to 10 videos.'); break; }
+    if (!String(f.type).startsWith('video/')){ toast('That file is not a video.'); continue; }
+    if (f.size > MAX_VID){ toast('That video is over 20 MB. Record a shorter one.'); continue; }
+    videoFiles.push(f);
+  }
+  e.target.value = ''; renderVids();
+});
+$('#vlist').addEventListener('click', e => {
+  const b = e.target.closest('button[data-vi]'); if (!b) return;
+  videoFiles.splice(+b.dataset.vi, 1); renderVids();
+});
+function showErr(msg){ $('#err').innerHTML = msg ? `<div class="err" role="alert">${esc(msg)}</div>` : ''; if (msg) window.scrollTo(0,0); }
+
+$('#post').addEventListener('click', async () => {
+  const v = id => $('#'+id).value.trim();
+  if (!v('name')) return showErr('Enter the hostel name.');
+  if (!v('reg')) return showErr('Enter the registration or licence number.');
+  if (!v('pregion')) return showErr('Choose the region.');
+  if (!v('ptown')) return showErr('Enter the town or city.');
+  if (!v('parea')) return showErr('Enter the area.');
+  if (!v('landmark')) return showErr('Enter a landmark nearby.');
+  const rooms = [];
+  for (let i = 0; i < roomRows.length; i++){
+    const r = roomRows[i], price = parseFloat(r.price), left = parseInt(r.left, 10);
+    if (!String(r.type).trim()) return showErr('Room type ' + (i+1) + ': enter the room type, like "2 in a room".');
+    if (!(price > 0)) return showErr('Room type ' + (i+1) + ': enter the price.');
+    if (!(left >= 1)) return showErr('Room type ' + (i+1) + ': enter how many rooms are available.');
+    rooms.push({id:'r' + (i+1), type:String(r.type).trim(), price, period:r.period, left});
+  }
+  const phoneN = waNumber(v('phone'));
+  if (!phoneN) return showErr('Enter a Ghana phone number, like 024 123 4567.');
+  if (v('pin').length < 6) return showErr('Create a password with at least 6 characters.');
+  if (v('pin') !== v('pin2')) return showErr('The two passwords are not the same.');
+  if (!photos.length) return showErr('Add at least one photo.');
+  if (!sb) return showErr('The app could not load fully. Check your internet and refresh.');
+  showErr('');
+
+  const btn = $('#post'); btn.disabled = true; btn.textContent = 'Saving...';
+  const reset = () => { btn.disabled = false; btn.textContent = 'Save hostel'; };
+  let urls = [], vurls = [];
+  try {
+    const stamp = now().toString(36) + Math.random().toString(36).slice(2, 7);
+    for (let i = 0; i < photos.length; i++){
+      btn.textContent = 'Uploading photo ' + (i + 1) + ' of ' + photos.length + '...';
+      const blob = await (await fetch(photos[i])).blob();
+      const path = 'h/' + stamp + '-' + i + '.jpg';
+      const up = await sb.storage.from('hostel-photos').upload(path, blob, {contentType:'image/jpeg'});
+      if (up.error) throw new Error(up.error.message);
+      urls.push(sb.storage.from('hostel-photos').getPublicUrl(path).data.publicUrl);
+    }
+  } catch(e){
+    reset(); return showErr('A photo could not be uploaded. Check your internet and try again.');
+  }
+  try {
+    for (let i = 0; i < videoFiles.length; i++){
+      btn.textContent = 'Uploading video ' + (i + 1) + ' of ' + videoFiles.length + '...';
+      const f = videoFiles[i], type = f.type || 'video/mp4';
+      const ext = /webm/.test(type) ? 'webm' : /quicktime/.test(type) ? 'mov' : /3gpp/.test(type) ? '3gp' : 'mp4';
+      const path = 'h/' + now().toString(36) + Math.random().toString(36).slice(2, 7) + '-' + i + '.' + ext;
+      const up = await sb.storage.from('hostel-videos').upload(path, f, {contentType:type});
+      if (up.error) throw new Error(up.error.message);
+      vurls.push(sb.storage.from('hostel-videos').getPublicUrl(path).data.publicUrl);
+    }
+  } catch(e){
+    reset(); return showErr('A video could not be uploaded. Check your internet, or try a shorter video.');
+  }
+  try {
+    btn.textContent = 'Saving...';
+    await rpc('submit_hostel', {p:{name:v('name'), owner:v('owner'), phone:v('phone'), phoneN, region:v('pregion'), town:v('ptown'), area:v('parea'),
+      landmark:v('landmark'), reg:v('reg'), desc:v('desc'), rooms, photos:urls, videos:vurls}, p_pin:v('pin')});
+  } catch(e){ reset(); return showErr(e.message); }
+  session = {phone:phoneN, pin:v('pin')};
+  try { await loadMine(); } catch(_){}
+  ['name','reg','parea','landmark','desc'].forEach(id => $('#'+id).value = '');
+  $('#pin2').value = '';
+  photos = []; videoFiles = []; renderThumbs(); renderVids();
+  roomRows = [{type:'', price:'', period:'year', left:''}]; renderRoomRows();
+  reset();
+  show('manage'); toast('Hostel saved. The agent will check it and publish it.');
+});
+
+function prefillOwner(){
+  const note = $('#addnote');
+  if (!session){ note.innerHTML = ''; return; }
+  const last = MINE[0];
+  if (!last){ note.innerHTML = ''; return; }
+  if (!$('#owner').value) $('#owner').value = last.owner || '';
+  if (!$('#phone').value) $('#phone').value = last.phone;
+  if (!$('#pin').value) $('#pin').value = session.pin;
+  if (!$('#pin2').value) $('#pin2').value = session.pin;
+  if (!$('#pregion').value) $('#pregion').value = last.region;
+  if (!$('#ptown').value) $('#ptown').value = last.town;
+  note.innerHTML = `<div class="banner">Adding another hostel for ${esc(last.owner || last.phone)}. Your details are filled in.</div>`;
+}
+
+/* ---------- My hostels (owner) ---------- */
+let session = null;
+const NOTIFIED = new Set();
+function statusLine(h){
+  const st = stateOf(h);
+  if (st === 'pending') return '<p class="status bad">Waiting for the agent to check your hostel and record your payment. They will contact you.</p>';
+  if (st === 'suspended') return '<p class="status bad">Removed from the list by the agent.</p>';
+  if (st === 'expired') return `<p class="status bad">Your paid year ended on ${fmtDate(h.paidUntil)}. Contact the agent to renew, so students can see it again.</p>`;
+  if (isTaken(h)) return '<p class="status bad">All rooms are taken, so students do not see it in the list.</p>';
+  return `<p class="status live">Showing to students${noEnd(h) ? '' : ' until ' + fmtDate(h.paidUntil)}.</p>`;
+}
+function hostelPanel(h){
+  return `<section class="panel" data-h="${esc(h.id)}">
+    <h2>${esc(h.name)}</h2>
+    <p class="hint" style="margin:-6px 0 8px">${esc(locText(h))}</p>
+    ${statusLine(h)}
+    <h3 style="margin-top:14px">Rooms</h3>
+    ${h.rooms.map(r => { const sent = NOTIFIED.has(h.id + '|' + r.id); return `<div class="mroom${r.left === 0 ? ' gone' : ''}"><div><b>${oneDot(r.left === 0)}${esc(r.type)}</b><span>${money(r.price)} a ${perLabel(r.period)}. ${r.left === 0 ? 'All taken' : r.left + ' left'}</span></div>
+      <div class="mbtns"><button class="ghost" data-act="notify" data-r="${esc(r.id)}"${r.left === 0 || sent ? ' disabled' : ''}>${sent ? 'Message sent' : 'A room was taken'}</button></div></div>`; }).join('')}
+    <p class="hint" style="margin:8px 0 0">If you rent a room yourself, tap "A room was taken". The agent will confirm it and update the list.</p>
+    <div style="height:14px"></div>
+  </section>`;
+}
+function renderManage(){
+  const box = $('#manage');
+  if (!session){
+    box.innerHTML = `<div class="panel"><h2>Sign in to your hostels</h2>
+      <div class="f"><label for="mp">Phone number</label><input id="mp" type="tel" inputmode="tel" placeholder="024 123 4567"></div>
+      <div class="f"><label for="mpin">Password</label><input id="mpin" type="password" autocomplete="current-password"></div>
+      <div id="merr"></div>
+      <button class="btn" data-act="login">Sign in</button>
+      <p class="hint" style="margin:12px 0 14px">You created your password when you listed your first hostel. If you forgot it, ask the agent to reset it.</p></div>`;
+    return;
+  }
+  const hs = MINE;
+  if (!hs.length){ session = null; return renderManage(); }
+  box.innerHTML = hs.map(hostelPanel).join('') +
+    `<div class="row"><button class="btn" style="width:auto;flex:1" data-act="another">Add another hostel</button><button class="ghost" style="padding:14px" data-act="logout">Sign out</button></div>`;
+}
+$('#manage').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'login'){
+    const p = waNumber($('#mp').value), pin = $('#mpin').value.trim();
+    if (!p || pin.length < 4){ $('#merr').innerHTML = '<div class="err" role="alert">Phone number or password is wrong.</div>'; return; }
+    b.disabled = true;
+    try { session = {phone:p, pin}; await loadMine(); renderManage(); }
+    catch(err){ session = null; MINE = []; b.disabled = false; $('#merr').innerHTML = `<div class="err" role="alert">${esc(err.message)}</div>`; }
+  } else if (act === 'logout'){
+    session = null; MINE = []; NOTIFIED.clear(); ['owner','phone','pin','pin2','ptown'].forEach(id => $('#'+id).value = ''); $('#pregion').value = ''; renderManage();
+  } else if (act === 'another'){ show('post'); }
+  else if (act === 'notify'){
+    const hid = b.closest('[data-h]').dataset.h;
+    b.disabled = true;
+    try {
+      await rpc('owner_notify_taken', {p_phone:session.phone, p_pin:session.pin, p_hid:hid, p_rid:b.dataset.r});
+      NOTIFIED.add(hid + '|' + b.dataset.r);
+      toast('Message sent to the agent. They will confirm and update the list.');
+    } catch(err){ toast(err.message); }
+    renderManage();
+  }
+});
+
+/* ---------- Feedback ---------- */
+function fillAbout(){
+  $('#fbabout').innerHTML = '<option value="">The Akwaaba Stays site</option>' +
+    all().filter(h => isLive(h)).map(h => `<option value="${esc(h.id)}">${esc(h.name)}, ${esc(h.town)}</option>`).join('');
+}
+$('#fbsend').addEventListener('click', async () => {
+  const msg = $('#fbmsg').value.trim();
+  if (msg.length < 5){ $('#fberr').innerHTML = '<div class="err" role="alert">Write a few words of feedback first.</div>'; return; }
+  const about = $('#fbabout').value, h = about ? all().find(x => x.id === about) : null;
+  const btn = $('#fbsend'); btn.disabled = true;
+  try {
+    await rpc('submit_feedback', {p:{about, aboutName:h ? h.name : 'The Akwaaba Stays site', msg, name:$('#fbname').value, phone:$('#fbphone').value, rating:$('#fbrate').value}});
+  } catch(err){ btn.disabled = false; $('#fberr').innerHTML = `<div class="err" role="alert">${esc(err.message)}</div>`; return; }
+  btn.disabled = false;
+  $('#fberr').innerHTML = '';
+  ['fbmsg','fbname','fbphone'].forEach(id => $('#'+id).value = ''); $('#fbrate').value = '';
+  toast('Thank you. Your feedback was sent.');
+});
+
+/* ---------- Admin ---------- */
+let adminOK = false, adminTab = 'overview', adminPin = '';
+const STATUS = {new:'New', arranged:'Viewing arranged', took:'Took a room', declined:"Didn't take"};
+const waLink = (num, text) => { const n = waNumber(num || ''); return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : ''; };
+const sum = (list, f) => list.reduce((a, x) => a + (+f(x) || 0), 0);
+
+function renewalsDue(){
+  return ADM.hostels.filter(h => { const st = stateOf(h); return st === 'expired' || (st === 'live' && !noEnd(h) && h.paidUntil < now() + 30 * 86400000); })
+    .sort((a, b) => a.paidUntil - b.paidUntil);
+}
+function csv(){
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const rows = [['Type','Date','Name','Hostel','Amount (GHS)','Receipt or reference','Paid until or status']];
+  ADM.payments.slice().reverse().forEach(p => rows.push(['Yearly premium', fmtDate(p.date), '', p.hostelName, p.amount, p.ref, fmtDate(p.validUntil)]));
+  ADM.requests.filter(r => r.status === 'took').slice().reverse().forEach(r => rows.push(['Student fee', fmtDate(r.updated), r.name, r.hostelName, r.commission, '', r.paid ? 'Received' : 'Not received']));
+  return rows.map(r => r.map(q).join(',')).join('\n');
+}
+function stats(){
+  const m = ADM.hostels, rq = ADM.requests;
+  return {total:m.length, live:m.filter(h => stateOf(h) === 'live').length, pending:m.filter(h => stateOf(h) === 'pending').length,
+    newReq:rq.filter(r => r.status === 'new').length, arranged:rq.filter(r => r.status === 'arranged').length, took:rq.filter(r => r.status === 'took').length,
+    premiums:sum(ADM.payments, p => p.amount), renewals:renewalsDue().length,
+    msgs:ADM.notices.length, unread:ADM.feedback.filter(f => !f.read).length};
+}
+function adminOverview(){
+  const s = stats();
+  const box = (n, l) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`;
+  const byTown = {};
+  ADM.hostels.forEach(h => { const k = h.town + '|' + h.region; (byTown[k] = byTown[k] || {})[h.area] = ((byTown[k] || {})[h.area] || 0) + 1; });
+  const towns = Object.keys(byTown).sort().map(k => {
+    const [town, region] = k.split('|'), areas = byTown[k], n = Object.values(areas).reduce((a, b) => a + b, 0);
+    return `<div class="loc2"><b>${esc(town)}</b> <span>${esc(region)} Region, ${n} ${n === 1 ? 'hostel' : 'hostels'}</span><br><span>${Object.keys(areas).sort().map(a => esc(a) + ' (' + areas[a] + ')').join(', ')}</span></div>`;
+  });
+  return `<div class="stats">
+      ${box(s.newReq, 'New viewing requests')}${box(s.arranged, 'Viewings arranged')}
+      ${box(s.took, 'Students who took a room')}${box(s.msgs, 'Owner messages to check')}
+      ${box(money(s.premiums), 'Yearly premiums received')}${box(s.renewals, 'Renewals due in 30 days')}
+      ${box(s.live, 'Hostels live')}${box(s.pending, 'Waiting for payment')}
+    </div>
+    <h3>Locations on the site</h3>
+    ${towns.length ? towns.join('') : '<div class="empty"><b>No locations yet.</b>They appear here as owners list their hostels.</div>'}
+    <h3>What is happening</h3>
+    <div class="panel" style="padding-bottom:6px">${ADM.log.length ? ADM.log.slice(0, 30).map(e => `<div class="act-row">${esc(e.m)}<small>${fmtTime(e.t)}</small></div>`).join('') : '<p class="hint" style="margin:0 0 10px">Nothing yet. New hostels, requests and rooms taken show up here.</p>'}</div>`;
+}
+function adminRow(h){
+  const st = stateOf(h), size = h.size || 'small', ends = noEnd(h) ? '' : fmtDate(h.paidUntil);
+  const label = st === 'pending' ? '<span class="bad">Waiting for payment</span>' : st === 'suspended' ? '<span class="bad">Removed</span>'
+    : st === 'expired' ? '<span class="bad">Ended ' + ends + '</span>'
+    : (!noEnd(h) && daysLeft(h) <= 30) ? '<span class="soon">Ends in ' + daysLeft(h) + ' days</span>' : '<span class="live">Live' + (ends ? ' until ' + ends : '') + '</span>';
+  const wa = waLink(h.phoneN, 'Hello ' + (h.owner || '') + ', this is the Akwaaba Stays agent about ' + h.name + '.');
+  const paidLine = st === 'pending' ? 'Not paid yet.' : noEnd(h) ? 'No end date set.' : (st === 'expired' ? 'Ended on ' : 'Paid until ') + ends + '.';
+  return `<details class="arow" data-h="${esc(h.id)}" data-ph="${esc(h.phoneN)}"><summary><b>${esc(h.name)}</b>${label}</summary>
+    <div class="abody">
+      <p>${stateHtml(isTaken(h))}<br>Owner: ${esc(h.owner || 'Not given')}, ${esc(h.phone)}<br>Registration number: <b>${esc(h.reg)}</b><br>${esc(locText(h))}, ${esc(h.region)} Region<br>Near ${esc(h.landmark)}<br>${h.photos.length} photo(s), ${(h.videos || []).length} video(s)</p>
+      <h3>Rooms (only you can change these)</h3>
+      ${h.rooms.map(r => `<div class="mroom${r.left === 0 ? ' gone' : ''}"><div><b>${oneDot(r.left === 0)}${esc(r.type)}</b><span>${money(r.price)} a ${perLabel(r.period)}. ${r.left} left</span></div><div class="mbtns"><button class="ghost" data-act="roomdec" data-r="${esc(r.id)}"${r.left === 0 ? ' disabled' : ''}>-1</button><button class="ghost" data-act="roominc" data-r="${esc(r.id)}">+1</button></div></div>`).join('')}
+      <div class="row" style="margin-top:10px"><button class="ghost small" data-act="settaken" data-v="${h.taken ? 0 : 1}">${h.taken ? 'Mark as not taken' : 'Mark whole hostel as taken'}</button></div>
+      <h3>Yearly premium</h3>
+      <p class="hint" style="margin:0 0 8px">${paidLine}</p>
+      <div class="two">
+        <div class="f"><label>Hostel size</label><select data-f="size">${['small','medium','large'].map(x => `<option value="${x}"${size === x ? ' selected' : ''}>${x[0].toUpperCase() + x.slice(1)}</option>`).join('')}</select></div>
+        <div class="f"><label>Amount received (GH₵)</label><input data-f="amount" type="number" inputmode="decimal" value="${esc(premFor(size) || '')}"></div>
+      </div>
+      <div class="f"><label>Receipt or MoMo number (optional)</label><input data-f="ref" autocomplete="off"></div>
+      <label class="chk"><input type="checkbox" data-f="checked"> I checked this registration number against the official list</label>
+      <div class="row"><button class="btn small" style="width:auto" data-act="pay">Record yearly payment</button></div>
+      <p class="hint" style="margin:0 0 10px">This makes the hostel live for 12 months from today, or adds 12 months to the end date if the year is still running.</p>
+      <h3>Owner password</h3>
+      <div class="f"><label>New password for this owner (at least 6 characters)</label><input data-f="newpw" type="text" autocomplete="off" placeholder="Type a new password"></div>
+      <div class="row"><button class="ghost small" data-act="resetpw">Reset owner password</button></div>
+      <div class="row"><button class="ghost small" data-act="edit">Edit hostel details</button></div>
+      <div class="row"><button class="ghost red small" data-act="deletehost">Delete permanently</button></div>
+      <div class="row">
+        ${st === 'suspended' ? '<button class="btn small" style="width:auto" data-act="restore">Put back on the list</button>' : '<button class="ghost red small" data-act="suspend">Remove from list</button>'}
+        ${wa ? `<a class="ghost small" style="text-decoration:none" href="${wa}" target="_blank" rel="noopener">WhatsApp owner</a>` : ''}
+      </div>
+    </div></details>`;
+}
+function adminHostels(){
+  const rank = h => ({pending:0, expired:1, live:2, suspended:3}[stateOf(h)]);
+  const hs = ADM.hostels.slice().sort((a, b) => rank(a) - rank(b) || b.created - a.created);
+  return hs.length ? hs.map(adminRow).join('') : '<div class="empty"><b>No hostels yet.</b>New listings from owners will appear here.</div>';
+}
+function requestRow(r){
+  const h = ADM.hostels.find(x => x.id === r.hostelId), rooms = h ? h.rooms : [];
+  const waS = waLink(r.phone, 'Hello ' + r.name + ', this is the Akwaaba Stays agent about your viewing request for ' + r.hostelName + '.');
+  const waO = waLink(r.ownerPhone, 'Hello ' + (r.ownerName || '') + ', a student (' + r.name + ') would like to view ' + r.hostelName + '. ' + (r.wanted ? 'They suggested: ' + r.wanted + '. ' : '') + 'What time suits you?');
+  const cls = r.status === 'new' ? 'soon' : r.status === 'took' ? 'live' : r.status === 'declined' ? 'bad' : '';
+  return `<details class="arow" data-q="${esc(r.id)}"${r.status === 'new' ? ' open' : ''}><summary><b>${esc(r.name)} for ${esc(r.hostelName)}</b><span class="${cls}">${esc(STATUS[r.status] || r.status)}. ${fmtTime(r.created)}</span></summary>
+    <div class="abody">
+      <p>Student: <b>${esc(r.name)}</b>, ${esc(r.phone)}<br>Wants to come: ${esc(r.wanted || 'Not said')}${r.note ? '<br>Note: ' + esc(r.note) : ''}<br>Owner: ${esc(r.ownerName || 'Not given')}, ${esc(r.ownerPhone || '')}</p>
+      <div class="row">${waS ? `<a class="ghost small" style="text-decoration:none" href="${waS}" target="_blank" rel="noopener">WhatsApp student</a>` : ''}${waO ? `<a class="ghost small" style="text-decoration:none" href="${waO}" target="_blank" rel="noopener">WhatsApp owner</a>` : ''}</div>
+      <div class="f"><label>Status</label><select data-f="status">${Object.keys(STATUS).map(k => `<option value="${k}"${r.status === k ? ' selected' : ''}>${esc(STATUS[k])}</option>`).join('')}</select></div>
+      <div data-f="tookbox"${r.status === 'took' ? '' : ' hidden'}>
+        <div class="f"><label>Room the student took</label><select data-f="room"><option value="">Choose a room</option>${rooms.map(x => `<option value="${esc(x.id)}"${r.roomId === x.id ? ' selected' : ''}>${esc(x.type)} (${money(x.price)} a ${perLabel(x.period)})</option>`).join('')}</select></div>
+        <div class="two">
+          <div class="f"><label>Rent agreed (GH₵, optional)</label><input data-f="rent" type="number" inputmode="decimal" value="${r.status === 'took' ? esc(r.rent) : ''}"></div>
+          <div class="f"><label>Student fee (GH₵)</label><input data-f="comm" type="number" inputmode="decimal" value="${r.status === 'took' ? esc(r.commission) : ''}" placeholder="Your default"></div>
+        </div>
+        <p class="hint" style="margin:0 0 10px">Leave the fee empty to use your default student fee.</p>
+      </div>
+      <div class="row"><button class="btn small" style="width:auto" data-act="reqsave">Save</button></div>
+    </div></details>`;
+}
+function adminRequests(){
+  const notices = ADM.notices.map(n => `<div class="fb new" data-id="${esc(n.id)}"><b>${esc(n.hostelName)}</b><span>${fmtTime(n.created)}</span>
+      <p>The owner says a room was taken: <b>${esc(n.roomType)}</b>.</p>
+      <div class="row" style="margin:8px 0 0"><button class="btn small" style="width:auto" data-act="nconfirm">Confirm (one less room)</button><button class="ghost small" data-act="ndismiss">Dismiss</button></div></div>`).join('');
+  const order = {new:0, arranged:1, took:2, declined:3};
+  const rq = ADM.requests.slice().sort((a, b) => (order[a.status] - order[b.status]) || (b.created - a.created));
+  return (notices ? '<h3>Owner messages</h3>' + notices : '') + '<h3>Viewing requests</h3>' +
+    (rq.length ? rq.map(requestRow).join('') : '<div class="empty"><b>No requests yet.</b>When a student taps "Request a viewing", it shows here.</div>');
+}
+function adminRenewals(){
+  const list = renewalsDue();
+  return '<p class="hint" style="margin:0 0 10px">Hostels whose paid year ends within 30 days, or has already ended. Send the owner a reminder, then record the renewal in the Hostels tab.</p>' +
+    (list.length ? list.map(h => {
+      const st = stateOf(h), d = daysLeft(h);
+      const msg = 'Hello ' + (h.owner || '') + ', this is the Akwaaba Stays agent. The yearly listing for ' + h.name +
+        (st === 'expired' ? ' ended on ' + fmtDate(h.paidUntil) + '. Students can no longer see it.' : ' ends on ' + fmtDate(h.paidUntil) + ' (' + d + ' days).') + ' Please renew with me so it stays visible.';
+      const wa = waLink(h.phoneN, msg);
+      return `<div class="pay"><b><span style="color:var(--ink)">${esc(h.name)}</span><span style="color:var(--ink)">${st === 'expired' ? 'Ended' : d + ' days'}</span></b>
+        <span>${esc(h.owner || 'Owner')}, ${esc(h.phone)}</span><span>${st === 'expired' ? 'Ended on ' : 'Ends on '}${fmtDate(h.paidUntil)}</span>
+        ${wa ? `<div class="row" style="margin:8px 0 0"><a class="ghost small" style="text-decoration:none" href="${wa}" target="_blank" rel="noopener">WhatsApp reminder</a></div>` : ''}</div>`;
+    }).join('') : '<div class="empty"><b>No renewals due.</b>Hostels show here 30 days before their year ends.</div>');
+}
+function adminPayments(){
+  const took = ADM.requests.filter(r => r.status === 'took').sort((a, b) => b.updated - a.updated);
+  const sGot = sum(took.filter(r => r.paid), r => r.commission), sOwed = sum(took.filter(r => !r.paid), r => r.commission);
+  const prem = ADM.payments.map(p => `<div class="pay"><b><span style="color:var(--ink)">${esc(p.hostelName)}</span><span style="color:var(--ink)">${money(p.amount)}</span></b>
+      <span>Paid on ${fmtDate(p.date)}. Covers until ${fmtDate(p.validUntil)}</span>${/^paper-/.test(p.ref) ? '' : '<span>Reference: ' + esc(p.ref) + '</span>'}</div>`).join('');
+  const students = took.map(r => `<div class="pay" data-q="${esc(r.id)}"><b><span style="color:var(--ink)">${esc(r.name)}</span><span style="color:var(--ink)">${money(r.commission)}</span></b>
+      <span>${esc(r.hostelName)}: took ${esc(r.roomType || 'a room')}. ${fmtDate(r.updated)}</span>
+      <span>${r.paid ? 'Received on ' + fmtDate(r.paidAt) : 'Not received yet'}</span>
+      <div class="row" style="margin:8px 0 0">${r.paid ? '<button class="ghost small" data-act="unpaid">Mark not received</button>' : '<button class="btn small" style="width:auto" data-act="paid">Mark received</button>'}</div></div>`).join('');
+  return `<div class="stats"><div class="stat"><b>${money(sum(ADM.payments, p => p.amount))}</b><span>Yearly premiums received</span></div><div class="stat"><b>${money(sGot)}</b><span>Student fees received</span></div></div>
+    ${sOwed > 0 ? `<p class="total">${money(sOwed)} <span style="font-family:var(--body);font-size:15px;color:var(--mute)">student fees not received yet</span></p>` : ''}
+    <h3>Yearly premiums</h3>${prem || '<div class="empty"><b>No payments yet.</b>Record a hostel\'s yearly payment in the Hostels tab. It shows here.</div>'}
+    <h3>Student fees (optional)</h3>${students || '<div class="empty"><b>No student fees yet.</b>If you charge one, it shows here after you mark a request as "Took a room".</div>'}
+    <div class="row" style="margin-top:10px"><button class="ghost" data-act="copycsv">Copy records</button><button class="ghost" data-act="dlcsv">Download as CSV</button></div>`;
+}
+function adminFeedback(){
+  const stars = r => r ? ({5:'Very good',4:'Good',3:'Okay',2:'Poor',1:'Very poor'}[r]) : 'No rating';
+  return ADM.feedback.length ? ADM.feedback.map(f => `<div class="fb${f.read ? '' : ' new'}" data-id="${esc(f.id)}">
+      <b>${esc(f.aboutName)}</b><span>${fmtTime(f.t)}. ${esc(stars(f.rating))}</span>
+      <p>${esc(f.msg)}</p>
+      <span>From: ${esc(f.name || 'Not given')}${f.phone ? ', ' + esc(f.phone) : ''}</span>
+      <div class="row" style="margin:8px 0 0">${f.read ? '' : '<button class="ghost small" data-act="fbread">Mark as read</button>'}<button class="ghost red small" data-act="fbdel">Delete</button></div></div>`).join('')
+    : '<div class="empty"><b>No feedback yet.</b>What people send from the Feedback tab shows here.</div>';
+}
+function adminSettings(){
+  return `<div class="panel"><h2>Your agent details</h2>
+      <div class="f"><label for="sap">Your phone number (students call and WhatsApp this)</label><input id="sap" type="tel" inputmode="tel" value="${esc(SET.agentPhone)}" placeholder="024 123 4567"></div>
+      <h3>Yearly premium for owners (GH₵ a year)</h3>
+      <div class="two">
+        <div class="f"><label for="ps">Small hostel</label><input id="ps" type="number" inputmode="decimal" value="${esc(SET.premSmall)}"></div>
+        <div class="f"><label for="pm">Medium hostel</label><input id="pm" type="number" inputmode="decimal" value="${esc(SET.premMedium)}"></div>
+      </div>
+      <div class="two">
+        <div class="f"><label for="pl">Large hostel</label><input id="pl" type="number" inputmode="decimal" value="${esc(SET.premLarge)}"></div>
+        <div class="f"><label for="ssf">Student fee (optional)</label><input id="ssf" type="number" inputmode="decimal" value="${esc(SET.studentFee)}"></div>
+      </div>
+      <p class="hint" style="margin:0 0 10px">You choose small, medium or large for each hostel in the Hostels tab. The student fee is optional: leave it at 0 if you do not charge one. If you set one, students see it before they ask for a viewing, and it is paid only when they take a room.</p>
+      <button class="ghost" data-act="savesettings" style="margin-bottom:14px">Save details</button></div>
+    <div class="panel"><h2>Storage cleanup</h2>
+      <p class="hint" style="margin:-4px 0 10px">Deletes photos and videos that no hostel uses any more (older than 1 day), to free space in Supabase. Removing a photo or video when you edit a hostel, and deleting a hostel, already do this for you.</p>
+      <button class="ghost" data-act="cleanup" style="margin-bottom:14px">Delete unused files</button></div>
+    <button class="ghost red" data-act="lock" style="margin-bottom:14px">Lock admin</button>`;
+}
+function renderAdmin(){
+  const box = $('#admin');
+  if (!adminOK){
+    box.innerHTML = `<div class="panel"><h2>Admin sign-in</h2>
+      <div class="f"><label for="ap">PIN</label><input id="ap" type="tel" inputmode="numeric"></div><div id="aerr"></div>
+      <button class="btn" data-act="unlock">Unlock</button><p style="margin:0 0 14px"></p></div>`;
+    return;
+  }
+  const unread = ADM.feedback.filter(f => !f.read).length, newReq = ADM.requests.filter(r => r.status === 'new').length + ADM.notices.length;
+  const wait = ADM.hostels.filter(h => stateOf(h) === 'pending').length, ren = renewalsDue().length;
+  const tabs = [['overview','Overview'], ['hostels','Hostels' + (wait ? ' (' + wait + ')' : '')], ['requests','Requests' + (newReq ? ' (' + newReq + ')' : '')],
+    ['renewals','Renewals' + (ren ? ' (' + ren + ')' : '')], ['payments','Payments'], ['feedback','Feedback' + (unread ? ' (' + unread + ')' : '')], ['settings','Settings']];
+  const body = {overview:adminOverview, hostels:adminHostels, requests:adminRequests, renewals:adminRenewals, payments:adminPayments, feedback:adminFeedback, settings:adminSettings}[adminTab]();
+  box.innerHTML = `<div class="atabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${adminTab === k}" data-act="atab" data-t="${k}">${l}</button>`).join('')}</div>${body}`;
+}
+$('#admin').addEventListener('change', e => {
+  const f = e.target.dataset.f, row = e.target.closest('.arow'); if (!row) return;
+  if (f === 'status') row.querySelector('[data-f="tookbox"]').hidden = e.target.value !== 'took';
+  if (f === 'size'){ const a = row.querySelector('[data-f="amount"]'); if (a) a.value = premFor(e.target.value) || ''; }
+});
+async function purgeFiles(list){
+  list = list || [];
+  const by = {}; list.forEach(x => (by[x.bucket] = by[x.bucket] || []).push(x.path));
+  let deleted = 0; const cleared = [];
+  for (const bucket of Object.keys(by)){
+    for (let i = 0; i < by[bucket].length; i += 50){
+      const r = await sb.storage.from(bucket).remove(by[bucket].slice(i, i + 50));
+      if (r.error) continue;
+      (r.data || []).forEach(o => { cleared.push(bucket + '/' + o.name); deleted++; });
+    }
+  }
+  if (cleared.length) await rpc('admin_trash_clear', {p_pin:adminPin, p_paths:cleared});
+  return {deleted, left:list.length - deleted};
+}
+async function cleanMsg(prefix, list){
+  try {
+    const r = await purgeFiles(list);
+    return prefix + (r.deleted ? ' ' + r.deleted + ' file(s) deleted from storage.' : (list && list.length ? '' : ' No files to delete.')) +
+      (r.left ? ' ' + r.left + ' could not be deleted yet. Try "Delete unused files" in Settings.' : '');
+  } catch(e){ return prefix + ' Some files could not be deleted yet.'; }
+}
+async function refreshAdmin(){ await loadAdmin(); renderAdmin(); loadPublic(); }
+$('#admin').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act, host = b.closest('[data-h]'), req = b.closest('[data-q]'), note = b.closest('[data-id]');
+  const call = async (fn, args, msg) => {
+    b.disabled = true;
+    try { await rpc(fn, Object.assign({p_pin:adminPin}, args)); await refreshAdmin(); if (msg) toast(msg); }
+    catch(err){ b.disabled = false; toast(err.message); }
+  };
+  const g = (el, k) => el.querySelector(`[data-f="${k}"]`);
+  if (act === 'unlock'){
+    adminPin = $('#ap').value.trim(); b.disabled = true;
+    try { await loadAdmin(); adminOK = true; renderAdmin(); }
+    catch(err){ adminPin = ''; b.disabled = false; $('#aerr').innerHTML = `<div class="err" role="alert">${esc(err.message)}</div>`; }
+  } else if (act === 'lock'){ adminOK = false; adminPin = ''; ADM = {hostels:[], payments:[], requests:[], notices:[], feedback:[], log:[]}; renderAdmin(); }
+  else if (act === 'atab'){ adminTab = b.dataset.t; renderAdmin(); }
+  else if (act === 'savesettings'){
+    await call('admin_save_premiums', {p_agent:$('#sap').value, p_small:parseFloat($('#ps').value) || 0, p_medium:parseFloat($('#pm').value) || 0, p_large:parseFloat($('#pl').value) || 0, p_student_fee:parseFloat($('#ssf').value) || 0}, 'Details saved.');
+  } else if (act === 'pay'){
+    if (!g(host, 'checked').checked) return toast('Confirm that you checked the registration number first.');
+    const amt = parseFloat(g(host, 'amount').value);
+    if (isNaN(amt)) return toast('Enter the amount received (0 if free).');
+    await call('admin_record_premium', {p_hid:host.dataset.h, p_size:g(host, 'size').value, p_amount:amt, p_ref:g(host, 'ref').value}, 'Payment recorded. The hostel is live for 12 months.');
+  } else if (act === 'restore'){
+    await call('admin_set_status', {p_hid:host.dataset.h, p_action:'restore'}, 'Put back on the list.');
+  } else if (act === 'suspend'){
+    const h = ADM.hostels.find(x => x.id === host.dataset.h); if (!h) return;
+    if (!confirm('Remove ' + h.name + ' from the list?')) return;
+    await call('admin_set_status', {p_hid:h.id, p_action:'suspend'});
+  } else if (act === 'roomdec' || act === 'roominc'){
+    await call('admin_adjust_room', {p_hid:host.dataset.h, p_rid:b.dataset.r, p_delta:act === 'roomdec' ? -1 : 1});
+  } else if (act === 'settaken'){
+    await call('admin_set_taken', {p_hid:host.dataset.h, p_taken:b.dataset.v === '1'});
+  } else if (act === 'deletehost'){
+    const h = ADM.hostels.find(x => x.id === host.dataset.h); if (!h) return;
+    if (prompt('To delete ' + h.name + ' completely, type DELETE. This cannot be undone.') !== 'DELETE') return;
+    b.disabled = true;
+    try {
+      const trash = await rpc('admin_delete_hostel', {p_pin:adminPin, p_hid:h.id});
+      await refreshAdmin();
+      toast(await cleanMsg('Hostel deleted.', trash));
+    } catch(err){ b.disabled = false; toast(err.message); }
+  } else if (act === 'cleanup'){
+    b.disabled = true; b.textContent = 'Working...';
+    try { const list = await rpc('admin_find_unused', {p_pin:adminPin}); toast(await cleanMsg('Cleanup done.', list)); }
+    catch(err){ toast(err.message); }
+    b.disabled = false; b.textContent = 'Delete unused files';
+  } else if (act === 'edit'){ openEdit(host.dataset.h);
+  } else if (act === 'resetpw'){
+    const pw = g(host, 'newpw').value.trim();
+    if (pw.length < 6) return toast('The new password must have at least 6 characters.');
+    await call('admin_reset_owner_password', {p_phone:host.dataset.ph, p_new:pw}, 'Password reset. Tell the owner their new password.');
+  } else if (act === 'reqsave'){
+    const status = g(req, 'status').value, cm = g(req, 'comm').value.trim();
+    await call('admin_set_request', {p_id:req.dataset.q, p_status:status, p_room_id:status === 'took' ? g(req, 'room').value : '',
+      p_rent:parseFloat(g(req, 'rent').value) || 0, p_commission:(status === 'took' && cm !== '') ? parseFloat(cm) : null}, 'Saved.');
+  } else if (act === 'paid' || act === 'unpaid'){
+    await call('admin_request_paid', {p_id:req.dataset.q, p_paid:act === 'paid'});
+  } else if (act === 'nconfirm' || act === 'ndismiss'){
+    await call('admin_notice', {p_id:note.dataset.id, p_action:act === 'nconfirm' ? 'confirm' : 'dismiss'}, act === 'nconfirm' ? 'Done. One less room.' : '');
+  } else if (act === 'fbread' || act === 'fbdel'){
+    if (act === 'fbdel' && !confirm('Delete this feedback?')) return;
+    await call('admin_feedback', {p_id:b.closest('.fb').dataset.id, p_action:act === 'fbread' ? 'read' : 'delete'});
+  } else if (act === 'copycsv'){
+    try { await navigator.clipboard.writeText(csv()); toast('Records copied.'); }
+    catch(_) { toast('Copy is not available here. Use Download as CSV.'); }
+  } else if (act === 'dlcsv'){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv()], {type:'text/csv'}));
+    a.download = 'akwaaba-stays-earnings.csv'; document.body.appendChild(a); a.click(); a.remove();
+  }
+});
+
+/* ---------- Admin: edit a hostel ---------- */
+let EDIT = null;
+const edErr = m => { $('#ederr').innerHTML = m ? `<div class="err" role="alert">${esc(m)}</div>` : ''; };
+function openEdit(hid){
+  const h = ADM.hostels.find(x => x.id === hid); if (!h) return;
+  EDIT = {hid, photos:(h.photos || []).slice(), videos:(h.videos || []).slice(), newPhotos:[], newVideos:[], rooms:h.rooms.map(r => Object.assign({}, r))};
+  const sh = $('#editsheet'); sh.hidden = false;
+  sh.innerHTML = `<div class="box" role="dialog" aria-label="Edit hostel">
+    <h2>Edit hostel</h2>
+    <p class="hint" style="margin:0 0 12px">The owner's phone number cannot be changed here, because it is their sign-in. Photos and videos you remove here are also deleted from storage.</p>
+    <div class="f"><label for="edname">Hostel name</label><input id="edname" value="${esc(h.name)}"></div>
+    <div class="f"><label for="edowner">Owner's name</label><input id="edowner" value="${esc(h.owner || '')}"></div>
+    <div class="f"><label for="edregion">Region</label><select id="edregion">${REGIONS.map(r => `<option${r === h.region ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+    <div class="two">
+      <div class="f"><label for="edtown">Town</label><input id="edtown" value="${esc(h.town)}"></div>
+      <div class="f"><label for="edarea">Area</label><input id="edarea" value="${esc(h.area)}"></div>
+    </div>
+    <div class="f"><label for="edlandmark">Landmark</label><input id="edlandmark" value="${esc(h.landmark)}"></div>
+    <div class="f"><label for="edreg">Registration number</label><input id="edreg" value="${esc(h.reg || '')}"></div>
+    <div class="f"><label for="eddesc">About the hostel</label><textarea id="eddesc">${esc(h.desc || '')}</textarea></div>
+    <h3>Rooms</h3><div id="edrooms"></div>
+    <button type="button" class="ghost" data-ed="addroom" style="margin-bottom:10px">Add a room type</button>
+    <div id="edmedia"></div>
+    <div id="ederr" style="margin-top:12px"></div>
+    <button class="btn" data-ed="save" style="margin-top:6px">Save changes</button>
+    <button class="ghost" data-ed="cancel" style="width:100%;margin-top:10px">Cancel</button></div>`;
+  edRooms(); edMedia();
+}
+function edRooms(){
+  $('#edrooms').innerHTML = EDIT.rooms.map((r, i) => `<div class="panel" style="padding:10px 12px 2px" data-i="${i}">
+    <div class="f"><label>Room type</label><input data-k="type" value="${esc(r.type)}"></div>
+    <div class="two">
+      <div class="f"><label>Price (GH₵)</label><input data-k="price" type="number" inputmode="decimal" value="${esc(r.price)}"></div>
+      <div class="f"><label>Paid per</label><select data-k="period">${['month','semester','year'].map(x => `<option value="${x}"${r.period === x ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="two">
+      <div class="f"><label>Rooms left</label><input data-k="left" type="number" inputmode="numeric" value="${esc(r.left)}"></div>
+      <div class="f"><label>&nbsp;</label>${EDIT.rooms.length > 1 ? '<button type="button" class="ghost red small" data-ed="rmroom" style="width:100%">Remove</button>' : ''}</div>
+    </div></div>`).join('');
+}
+function syncRooms(){
+  document.querySelectorAll('#edrooms [data-i]').forEach(row => {
+    const r = EDIT.rooms[+row.dataset.i], k = n => row.querySelector(`[data-k="${n}"]`).value;
+    r.type = k('type').trim(); r.price = parseFloat(k('price')) || 0; r.period = k('period');
+    const l = parseInt(k('left'), 10); r.left = isNaN(l) ? 0 : l;
+  });
+}
+function edMedia(){
+  const thumb = u => `<img src="${esc(u)}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">`;
+  const row = (inner, act, i) => `<div class="vrow"><span>${inner}</span><button type="button" data-ed="${act}" data-i="${i}" aria-label="Remove">×</button></div>`;
+  $('#edmedia').innerHTML = `<h3>Photos (1 to 5)</h3>
+    ${EDIT.photos.map((u, i) => row(thumb(u) + 'Photo ' + (i + 1), 'rmphoto', i)).join('')}
+    ${EDIT.newPhotos.map((u, i) => row(thumb(u) + 'New photo', 'rmnewphoto', i)).join('')}
+    <div class="f" style="margin-top:8px"><input id="edphotos" type="file" accept="image/*" multiple></div>
+    <h3>Videos (up to 10)</h3>
+    ${EDIT.videos.map((u, i) => row('Video ' + (i + 1), 'rmvideo', i)).join('')}
+    ${EDIT.newVideos.map((f, i) => row(esc(f.name) + ' (new, ' + (f.size / 1048576).toFixed(1) + ' MB)', 'rmnewvideo', i)).join('')}
+    <div class="f" style="margin-top:8px"><input id="edvideos" type="file" accept="video/*" multiple></div>`;
+}
+async function saveEdit(btn){
+  syncRooms();
+  const v = id => $('#' + id).value.trim();
+  if (v('edname').length < 2) return edErr('Enter the hostel name.');
+  if (!v('edtown') || !v('edarea') || !v('edlandmark')) return edErr('Fill in the town, area and landmark.');
+  for (let i = 0; i < EDIT.rooms.length; i++){
+    const r = EDIT.rooms[i];
+    if (!r.type) return edErr('Room type ' + (i + 1) + ': enter the name.');
+    if (!(r.price > 0)) return edErr('Room type ' + (i + 1) + ': enter the price.');
+  }
+  if (EDIT.photos.length + EDIT.newPhotos.length < 1) return edErr('A hostel needs at least one photo.');
+  edErr(''); btn.disabled = true;
+  const label = btn.textContent;
+  try {
+    const stamp = () => now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const photos = EDIT.photos.slice(), videos = EDIT.videos.slice();
+    for (let i = 0; i < EDIT.newPhotos.length; i++){
+      btn.textContent = 'Uploading photo ' + (i + 1) + ' of ' + EDIT.newPhotos.length + '...';
+      const blob = await (await fetch(EDIT.newPhotos[i])).blob(), path = 'h/' + stamp() + '-' + i + '.jpg';
+      const up = await sb.storage.from('hostel-photos').upload(path, blob, {contentType:'image/jpeg'});
+      if (up.error) throw new Error('A photo could not be uploaded.');
+      photos.push(sb.storage.from('hostel-photos').getPublicUrl(path).data.publicUrl);
+    }
+    for (let i = 0; i < EDIT.newVideos.length; i++){
+      btn.textContent = 'Uploading video ' + (i + 1) + ' of ' + EDIT.newVideos.length + '...';
+      const f = EDIT.newVideos[i], type = f.type || 'video/mp4';
+      const ext = /webm/.test(type) ? 'webm' : /quicktime/.test(type) ? 'mov' : /3gpp/.test(type) ? '3gp' : 'mp4';
+      const path = 'h/' + stamp() + '-' + i + '.' + ext;
+      const up = await sb.storage.from('hostel-videos').upload(path, f, {contentType:type});
+      if (up.error) throw new Error('A video could not be uploaded.');
+      videos.push(sb.storage.from('hostel-videos').getPublicUrl(path).data.publicUrl);
+    }
+    btn.textContent = 'Saving...';
+    const trash = await rpc('admin_edit_hostel', {p_pin:adminPin, p_hid:EDIT.hid, p:{name:v('edname'), owner:v('edowner'), region:$('#edregion').value, town:v('edtown'),
+      area:v('edarea'), landmark:v('edlandmark'), reg:v('edreg'), desc:v('eddesc'),
+      rooms:EDIT.rooms.map(r => ({id:r.id, type:r.type, price:r.price, period:r.period, left:r.left})), photos, videos}});
+    $('#editsheet').hidden = true; EDIT = null;
+    await refreshAdmin(); toast(await cleanMsg('Hostel updated.', trash));
+  } catch(err){ btn.disabled = false; btn.textContent = label; edErr(err.message); }
+}
+$('#editsheet').addEventListener('click', e => {
+  const b = e.target.closest('[data-ed]'); if (!b || !EDIT) return;
+  const act = b.dataset.ed, i = +b.dataset.i;
+  if (act === 'cancel'){ $('#editsheet').hidden = true; EDIT = null; }
+  else if (act === 'save') saveEdit(b);
+  else if (act === 'addroom'){
+    syncRooms();
+    const n = Math.max(0, ...EDIT.rooms.map(r => +(String(r.id).replace(/\D/g, '')) || 0)) + 1;
+    if (EDIT.rooms.length >= 12) return edErr('A hostel can have up to 12 room types.');
+    EDIT.rooms.push({id:'r' + n, type:'', price:'', period:'year', left:1}); edRooms();
+  } else if (act === 'rmroom'){ syncRooms(); EDIT.rooms.splice(+b.closest('[data-i]').dataset.i, 1); edRooms(); }
+  else if (act === 'rmphoto'){ EDIT.photos.splice(i, 1); edMedia(); }
+  else if (act === 'rmnewphoto'){ EDIT.newPhotos.splice(i, 1); edMedia(); }
+  else if (act === 'rmvideo'){ EDIT.videos.splice(i, 1); edMedia(); }
+  else if (act === 'rmnewvideo'){ EDIT.newVideos.splice(i, 1); edMedia(); }
+});
+$('#editsheet').addEventListener('change', async e => {
+  if (!EDIT) return;
+  if (e.target.id === 'edphotos'){
+    for (const f of [...e.target.files]){
+      if (EDIT.photos.length + EDIT.newPhotos.length >= 5){ edErr('A hostel can have up to 5 photos.'); break; }
+      try { EDIT.newPhotos.push(await compress(f)); } catch(_){ edErr('That photo could not be read.'); }
+    }
+    edMedia();
+  } else if (e.target.id === 'edvideos'){
+    for (const f of [...e.target.files]){
+      if (EDIT.videos.length + EDIT.newVideos.length >= 10){ edErr('A hostel can have up to 10 videos.'); break; }
+      if (!String(f.type).startsWith('video/')){ edErr('That file is not a video.'); continue; }
+      if (f.size > 20 * 1024 * 1024){ edErr('That video is over 20 MB.'); continue; }
+      EDIT.newVideos.push(f);
+    }
+    edMedia();
+  }
+});
+
+/* ---------- Shared ---------- */
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('on'), 4200);
+}
+function show(v){
+  document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id === 'v-' + v));
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'find'){ renderFind(); if (!LOADING) loadPublic(); }
+  if (v === 'post'){ prefillOwner(); fillSuggest(); }
+  if (v === 'manage') renderManage();
+  if (v === 'feedback') fillAbout();
+  if (v === 'admin') renderAdmin();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => { if (!$('#detail').hidden) history.back(); show(b.dataset.v); }));
+
+renderRoomRows();
+renderFind();
+loadPublic();
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !LOADING) loadPublic(); });
+
+/* install button and offline support */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#install').hidden = false; });
+$('#install').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt = null; $('#install').hidden = true;
+});
+window.addEventListener('appinstalled', () => { $('#install').hidden = true; });
+if ('serviceWorker' in navigator){
+  const hadSW = !!navigator.serviceWorker.controller; let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadSW || reloading) return;
+    const a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){ toast('A new version is ready. Close and reopen the app.'); return; }
+    reloading = true; location.reload();
+  });
+  window.addEventListener('load', () => navigator.serviceWorker.register('hostels-sw.js', {updateViaCache:'none'}).catch(() => {}));
+}
+</script>
+</body>
+</html>
